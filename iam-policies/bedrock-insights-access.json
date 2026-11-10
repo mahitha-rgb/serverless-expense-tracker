@@ -1,0 +1,13 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["bedrock:InvokeModel"],
+      "Resource": [
+        "arn:aws:bedrock:*::foundation-model/amazon.nova-micro-v1:0",
+        "arn:aws:bedrock:*:YOUR_ACCOUNT_ID:inference-profile/apac.amazon.nova-micro-v1:0"
+      ]
+    }
+  ]
+}

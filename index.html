@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Expense Tracker</title>
+<style>
+  :root {
+    --bg: #f4f6f8;
+    --surface: #ffffff;
+    --ink: #1b2430;
+    --muted: #5d6877;
+    --line: #d9dee5;
+    --accent: #0f6b6b;
+    --accent-ink: #ffffff;
+    --danger: #b3382c;
+    --focus: #1a73e8;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12171d;
+      --surface: #1b232c;
+      --ink: #e8edf2;
+      --muted: #9aa6b4;
+      --line: #2e3945;
+      --accent: #4cc2b8;
+      --accent-ink: #0b1a19;
+      --danger: #ff8a7a;
+      --focus: #8ab4f8;
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 960px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 1.5rem; margin: 0 0 24px; font-weight: 650; }
+  h2 { font-size: 1.05rem; margin: 0 0 16px; font-weight: 650; }
+  .layout { display: grid; gap: 20px; grid-template-columns: 1fr; }
+  @media (min-width: 800px) { .layout { grid-template-columns: 320px 1fr; align-items: start; } }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; }
+  .total { margin-bottom: 20px; }
+  .total .figure { font: 600 2.6rem/1.1 Georgia, "Times New Roman", serif; font-variant-numeric: tabular-nums; }
+  .total .note { color: var(--muted); margin-top: 4px; }
+  label { display: block; font-weight: 600; font-size: .9rem; margin: 14px 0 4px; }
+  input, select, button { font: inherit; }
+  input, select {
+    width: 100%; padding: 10px 12px; color: var(--ink); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 8px;
+  }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  button { cursor: pointer; border-radius: 8px; border: 1px solid transparent; padding: 10px 16px; font-weight: 600; }
+  .primary { width: 100%; margin-top: 20px; background: var(--accent); color: var(--accent-ink); }
+  .primary:disabled { opacity: .6; cursor: wait; }
+  .del { background: transparent; color: var(--danger); border-color: var(--line); padding: 6px 12px; font-size: .85rem; }
+  .list-head { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 8px; }
+  .list-head label { margin: 0; }
+  .list-head input { width: auto; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 14px 0; border-top: 1px solid var(--line); align-items: center; }
+  .what { font-weight: 600; overflow-wrap: anywhere; }
+  .meta { color: var(--muted); font-size: .88rem; }
+  .amt { font-variant-numeric: tabular-nums; font-weight: 650; text-align: right; }
+  .empty { color: var(--muted); padding: 24px 0 8px; border-top: 1px solid var(--line); }
+  #status { min-height: 1.4em; margin-top: 12px; font-size: .92rem; }
+  #status.error { color: var(--danger); }
+  #status.ok { color: var(--accent); }
+  [hidden] { display: none !important; }
+  .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .topbar h1 { margin: 0; }
+  .primary.secondary { background: transparent; color: var(--ink); border-color: var(--line); margin-top: 10px; }
+  #auth { max-width: 420px; margin: 0 auto 20px; }
+  #auth-status { min-height: 1.4em; margin-top: 12px; font-size: .92rem; }
+  #auth-status.error { color: var(--danger); }
+  #auth-status.ok { color: var(--accent); }
+  .insights { border-top: 1px solid var(--line); margin-top: 8px; padding-top: 16px; }
+  .bar-row { margin-bottom: 12px; }
+  .bar-label { font-size: .9rem; margin-bottom: 4px; }
+  .bar-track { height: 8px; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--accent); }
+  #ai-btn { margin-top: 8px; }
+  #tips { margin-top: 14px; white-space: pre-wrap; }
+  #tips.error { color: var(--danger); }
+</style>
+</head>
+<body>
+<main>
+  <div class="topbar">
+    <h1>Expense Tracker</h1>
+    <button class="del" id="signout" type="button" hidden>Sign out</button>
+  </div>
+
+  <section class="panel" id="auth" hidden>
+    <h2 id="auth-title">Sign in</h2>
+    <form id="auth-form">
+      <label for="email">Email</label>
+      <input id="email" type="email" required autocomplete="email">
+      <label for="password">Password (8+ characters, with upper, lower case and a number)</label>
+      <input id="password" type="password" required minlength="8" autocomplete="current-password">
+      <div id="code-row" hidden>
+        <label for="code">Verification code (check your email)</label>
+        <input id="code" inputmode="numeric" autocomplete="one-time-code">
+      </div>
+      <button class="primary" id="auth-main" type="submit">Sign in</button>
+      <button class="primary secondary" id="auth-switch" type="button">Create a new account</button>
+    </form>
+    <div id="auth-status" role="status"></div>
+  </section>
+
+  <div id="app" hidden>
+  <section class="panel total" aria-live="polite">
+    <div class="note" id="total-label">Spent this month</div>
+    <div class="figure" id="total">&#8377;0.00</div>
+    <div class="note" id="count">0 expenses</div>
+  </section>
+
+  <div class="layout">
+    <section class="panel">
+      <h2>Add an expense</h2>
+      <form id="add-form">
+        <label for="amount">Amount (&#8377;)</label>
+        <input id="amount" type="number" min="0.01" step="0.01" required inputmode="decimal">
+
+        <label for="category">Category</label>
+        <select id="category">
+          <option>Food</option><option>Travel</option><option>Bills</option>
+          <option>Shopping</option><option>Health</option><option>Entertainment</option>
+          <option selected>Other</option>
+        </select>
+
+        <label for="description">Description</label>
+        <input id="description" type="text" maxlength="200" placeholder="Swiggy dinner">
+
+        <label for="date">Date</label>
+        <input id="date" type="date" required>
+
+        <button class="primary" id="save" type="submit">Save expense</button>
+      </form>
+      <div id="status" role="status"></div>
+    </section>
+
+    <section class="panel">
+      <div class="list-head">
+        <h2>Expenses</h2>
+        <div>
+          <label for="month">Month</label>
+          <input id="month" type="month">
+        </div>
+      </div>
+      <ul id="list"></ul>
+      <div class="insights" id="insights" hidden>
+        <h2>Spending by category</h2>
+        <div id="bars"></div>
+        <button class="primary" id="ai-btn" type="button">Get AI insights</button>
+        <div id="tips" role="status"></div>
+      </div>
+    </section>
+  </div>
+  </div>
+</main>
+
+<script>
+  // Your API address (from API Gateway). Do not add a slash at the end.
+  const API = "https://f1smfbu3ec.execute-api.ap-south-1.amazonaws.com";
+
+  const REGION = "ap-south-1";
+  const CLIENT_ID = "1dtshev3vqp0n1seiddeqbsndl"; // from Cognito > App clients
+
+  const $ = (id) => document.getElementById(id);
+
+  let idToken = null;
+  let mode = "signin";
+
+  async function cognito(target, body) {
+    const res = await fetch("https://cognito-idp." + REGION + ".amazonaws.com/", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-amz-json-1.1", "X-Amz-Target": "AWSCognitoIdentityProviderService." + target },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      const e = new Error(data.message || "Request failed");
+      e.type = data.__type || "";
+      throw e;
+    }
+    return data;
+  }
+
+  function tokenExp(t) {
+    try { return JSON.parse(atob(t.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))).exp; }
+    catch (e) { return 0; }
+  }
+
+  async function api(path, options) {
+    options = options || {};
+    if (!idToken || tokenExp(idToken) < Date.now() / 1000 + 30) {
+      signOut("Session expired. Please sign in again.");
+      throw new Error("Session expired");
+    }
+    const headers = Object.assign({}, options.headers, { Authorization: "Bearer " + idToken });
+    return fetch(API + path, Object.assign({}, options, { headers: headers }));
+  }
+
+  function authSay(text, kind) {
+    const el = $("auth-status");
+    el.textContent = text;
+    el.className = kind || "";
+  }
+
+  function setMode(m) {
+    mode = m;
+    $("auth-title").textContent = m === "signin" ? "Sign in" : m === "signup" ? "Create account" : "Confirm your email";
+    $("auth-main").textContent = m === "signin" ? "Sign in" : m === "signup" ? "Create account" : "Confirm";
+    $("auth-switch").textContent = m === "signin" ? "Create a new account" : "Back to sign in";
+    $("code-row").hidden = m !== "confirm";
+    $("password").autocomplete = m === "signin" ? "current-password" : "new-password";
+    authSay("");
+  }
+
+  function startSession(token) {
+    idToken = token;
+    try { sessionStorage.setItem("idToken", token); } catch (e) {}
+    $("auth").hidden = true;
+    $("app").hidden = false;
+    $("signout").hidden = false;
+    loadExpenses();
+  }
+
+  function signOut(message) {
+    idToken = null;
+    try { sessionStorage.removeItem("idToken"); } catch (e) {}
+    $("app").hidden = true;
+    $("signout").hidden = true;
+    $("auth").hidden = false;
+    $("password").value = "";
+    setMode("signin");
+    if (message) authSay(message, "error");
+  }
+
+  $("signout").addEventListener("click", () => signOut());
+  $("auth-switch").addEventListener("click", () => setMode(mode === "signin" ? "signup" : "signin"));
+
+  $("auth-form").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const email = $("email").value.trim();
+    const password = $("password").value;
+    authSay("Please wait...");
+    try {
+      if (mode === "signup") {
+        await cognito("SignUp", { ClientId: CLIENT_ID, Username: email, Password: password, UserAttributes: [{ Name: "email", Value: email }] });
+        setMode("confirm");
+        authSay("We emailed you a code. Enter it above and click Confirm.", "ok");
+      } else if (mode === "confirm") {
+        await cognito("ConfirmSignUp", { ClientId: CLIENT_ID, Username: email, ConfirmationCode: $("code").value.trim() });
+        setMode("signin");
+        authSay("Email confirmed. You can sign in now.", "ok");
+      } else {
+        const r = await cognito("InitiateAuth", { AuthFlow: "USER_PASSWORD_AUTH", ClientId: CLIENT_ID, AuthParameters: { USERNAME: email, PASSWORD: password } });
+        startSession(r.AuthenticationResult.IdToken);
+      }
+    } catch (err) {
+      if (err.type.indexOf("UserNotConfirmed") !== -1) {
+        try { await cognito("ResendConfirmationCode", { ClientId: CLIENT_ID, Username: email }); } catch (e2) {}
+        setMode("confirm");
+        authSay("Please confirm your email first. We sent a new code.", "ok");
+      } else {
+        authSay(err.message, "error");
+      }
+    }
+  });
+  const money = (n) => "\u20B9" + Number(n).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  function localISO(d) {
+    const z = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+    return z.toISOString().slice(0, 10);
+  }
+
+  function say(text, kind) {
+    const s = $("status");
+    s.textContent = text;
+    s.className = kind || "";
+  }
+
+  async function loadExpenses() {
+    const month = $("month").value;
+    $("list").innerHTML = "";
+    try {
+      const res = await api("/expenses" + (month ? "?month=" + encodeURIComponent(month) : ""));
+      if (!res.ok) throw new Error("Server returned " + res.status);
+      const data = await res.json();
+      render(data);
+    } catch (err) {
+      say("Could not load expenses. Check your internet and the API address. (" + err.message + ")", "error");
+    }
+  }
+
+  function renderBars(expenses) {
+    const box = $("bars");
+    box.innerHTML = "";
+    const totals = {};
+    let sum = 0;
+    expenses.forEach((e) => {
+      totals[e.category] = (totals[e.category] || 0) + Number(e.amount);
+      sum += Number(e.amount);
+    });
+    Object.keys(totals).sort((a, b) => totals[b] - totals[a]).forEach((cat) => {
+      const pct = Math.round(totals[cat] / sum * 100);
+      const row = document.createElement("div");
+      row.className = "bar-row";
+      const label = document.createElement("div");
+      label.className = "bar-label";
+      label.textContent = cat + " - " + pct + "% (" + money(totals[cat]) + ")";
+      const track = document.createElement("div");
+      track.className = "bar-track";
+      const fill = document.createElement("div");
+      fill.className = "bar-fill";
+      fill.style.width = pct + "%";
+      track.appendChild(fill);
+      row.append(label, track);
+      box.appendChild(row);
+    });
+    $("insights").hidden = !expenses.length;
+    $("tips").textContent = "";
+    $("tips").className = "";
+  }
+
+  function render(data) {
+    renderBars(data.expenses);
+    $("total").textContent = money(data.total);
+    $("count").textContent = data.count + (data.count === 1 ? " expense" : " expenses");
+    const list = $("list");
+    list.innerHTML = "";
+    if (!data.expenses.length) {
+      const p = document.createElement("li");
+      p.className = "empty";
+      p.textContent = "No expenses for this month. Add your first one.";
+      list.appendChild(p);
+      return;
+    }
+    data.expenses.forEach((e) => {
+      const li = document.createElement("li");
+
+      const left = document.createElement("div");
+      const what = document.createElement("div");
+      what.className = "what";
+      what.textContent = e.description || e.category;
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      meta.textContent = e.category + " on " + e.date;
+      left.append(what, meta);
+
+      const right = document.createElement("div");
+      const amt = document.createElement("div");
+      amt.className = "amt";
+      amt.textContent = money(e.amount);
+      const del = document.createElement("button");
+      del.className = "del";
+      del.type = "button";
+      del.textContent = "Delete";
+      del.setAttribute("aria-label", "Delete " + (e.description || e.category));
+      del.addEventListener("click", () => removeExpense(e.expense_sk));
+      right.append(amt, del);
+
+      li.append(left, right);
+      list.appendChild(li);
+    });
+  }
+
+  $("add-form").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const btn = $("save");
+    btn.disabled = true;
+    say("Saving...");
+    try {
+      const res = await api("/expenses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: $("amount").value,
+          category: $("category").value,
+          description: $("description").value,
+          date: $("date").value
+        })
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || "Server returned " + res.status);
+      $("amount").value = "";
+      $("description").value = "";
+      $("month").value = $("date").value.slice(0, 7);
+      say("Expense saved.", "ok");
+      await loadExpenses();
+    } catch (err) {
+      say("Could not save: " + err.message, "error");
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  async function removeExpense(sk) {
+    if (!confirm("Delete this expense?")) return;
+    try {
+      const res = await api("/expenses?expense_sk=" + encodeURIComponent(sk), { method: "DELETE" });
+      if (!res.ok) throw new Error("Server returned " + res.status);
+      say("Expense deleted.", "ok");
+      await loadExpenses();
+    } catch (err) {
+      say("Could not delete: " + err.message, "error");
+    }
+  }
+
+  $("ai-btn").addEventListener("click", async () => {
+    const btn = $("ai-btn");
+    btn.disabled = true;
+    $("tips").className = "";
+    $("tips").textContent = "Thinking...";
+    try {
+      const res = await api("/insights?month=" + encodeURIComponent($("month").value));
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || "Server returned " + res.status);
+      $("tips").textContent = body.tips || "AI tips are unavailable right now. The category breakdown above is still correct.";
+    } catch (err) {
+      $("tips").textContent = "Could not get insights: " + err.message;
+      $("tips").className = "error";
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  $("month").addEventListener("change", loadExpenses);
+
+  const now = new Date();
+  $("date").value = localISO(now);
+  $("month").value = localISO(now).slice(0, 7);
+
+  let saved = null;
+  try { saved = sessionStorage.getItem("idToken"); } catch (e) {}
+  if (saved && tokenExp(saved) > Date.now() / 1000 + 60) {
+    startSession(saved);
+  } else {
+    $("auth").hidden = false;
+    setMode("signin");
+  }
+</script>
+</body>
+</html>
