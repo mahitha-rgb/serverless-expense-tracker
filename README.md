@@ -5,7 +5,7 @@ A login-protected expense tracker built entirely on serverless AWS services, wit
 **Live demo:** https://d18r0likirjff2.cloudfront.net
 (May be offline if the AWS free plan has ended. See the [screenshots](#screenshots) and the [redeploy guide](#keeping-this-project-ready-if-the-aws-account-expires).)
 
-**Demo video:** [Watch the walkthrough](docs/demo.mp4)
+**Demo video:**
 
 
 https://github.com/user-attachments/assets/8173b88e-17a3-4cac-8cf0-f61c527c2144
