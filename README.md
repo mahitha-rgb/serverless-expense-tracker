@@ -7,6 +7,10 @@ A login-protected expense tracker built entirely on serverless AWS services, wit
 
 **Demo video:** [Watch the walkthrough](docs/demo.mp4)
 
+
+https://github.com/user-attachments/assets/8173b88e-17a3-4cac-8cf0-f61c527c2144
+
+
 ## What it does
 
 - Sign up with email verification, sign in, and sign out (Amazon Cognito)
