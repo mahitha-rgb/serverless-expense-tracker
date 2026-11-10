@@ -110,18 +110,18 @@ If you change `index.html` later, upload it to S3 again and create a CloudFront 
 
 | | |
 |---|---|
-| ![App dashboard](docs/screenshots/01-app-dashboard.png) | ![Sign in](docs/screenshots/02-sign-in.png) |
+| ![App dashboard](docs/screenshots/app-dashboard.png) | ![Sign in](docs/screenshots/sign-in.png) |
 | Signed-in app with expenses, category bars and AI tips | Sign-in and sign-up screen |
-| ![API routes](docs/screenshots/03-api-gateway-routes.png) | ![JWT authorizer](docs/screenshots/04-jwt-authorizer.png) |
+| ![API routes](docs/screenshots/api-gateway-routes.png) | ![JWT authorizer](docs/screenshots/jwt-authorizer.png) |
 | API Gateway routes | JWT authorizer attached to the routes |
-| ![DynamoDB](docs/screenshots/05-dynamodb-table.png) | ![Lambda](docs/screenshots/06-lambda-code.png) |
+| ![DynamoDB](docs/screenshots/dynamodb-table.png) | ![Lambda](docs/screenshots/lambda-code.png) |
 | DynamoDB items for the signed-in users | Lambda function code |
-| ![Cognito](docs/screenshots/07-cognito-user-pool.png) | ![CloudFront](docs/screenshots/08-cloudfront-distribution.png) |
+| ![Cognito](docs/screenshots/cognito-user-pool.png) | ![CloudFront](docs/screenshots/cloudfront-distribution.png) |
 | Cognito user pool | CloudFront distribution serving the site |
-| ![Bedrock](docs/screenshots/09-bedrock-playground.png) | ![IAM policies](docs/screenshots/10-iam-policies.png) |
-| Testing Nova Micro (a text-only model) in the Bedrock playground before wiring it into Lambda | Least-privilege inline policies on the Lambda role |
-| ![Locked API](docs/screenshots/12-unauthorized-direct-call.png) | |
-| The API refuses a request that has no login | |
+| ![S3 bucket](docs/screenshots/S3%20bucket.png) | ![IAM policies](docs/screenshots/IAM%20policies.png) |
+| Private S3 bucket holding the website file | Least-privilege inline policies on the Lambda role |
+| ![Bedrock](docs/screenshots/Bedrock-playground.png) | ![Locked API](docs/screenshots/unauthorized-direct-call.png) |
+| Testing Nova Micro (a text-only model) in the Bedrock playground before wiring it into Lambda | The API refuses a request that has no login |
 
 ## Keeping this project ready if the AWS account expires
 
